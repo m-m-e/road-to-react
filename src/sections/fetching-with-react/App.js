@@ -1,18 +1,18 @@
 import React, { Component } from 'react';
-import axios from 'axios';
-import Search from './components/Search';
-import Table from './components/Table';
-import Button from './components/Button';
+// import axios from 'axios';
+import Search from '../components/Search';
+import Table from '../components/Table';
+import Button from '../components/Button';
 import './App.css';
-import {
-  DEFAULT_QUERY,
-  DEFAULT_HPP,
-  PATH_BASE,
-  PATH_SEARCH,
-  PARAM_SEARCH,
-  PARAM_PAGE,
-  PARAM_HPP,
-  } from './constants';
+
+const DEFAULT_QUERY = 'redux';
+const DEFAULT_HPP = '10';
+
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
+const PARAM_PAGE = 'page=';
+const PARAM_HPP = 'hitsPerPage=';
 
 class App extends Component {
   state = { 
@@ -22,9 +22,17 @@ class App extends Component {
     error: null,
   };
 
+  //Fetching with axios
+  // fetchSearchTopStories = (searchTerm, page = 0) => {
+  //   axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+  //     .then(result => this.setSearchTopStories(result.data))
+  //     .catch(error => this.setState({ error }));
+  // }
+
   fetchSearchTopStories = (searchTerm, page = 0) => {
-    axios(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
-      .then(result => this.setSearchTopStories(result.data))
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
+      .then(response => response.json())
+      .then(result => this.setSearchTopStories(result))
       .catch(error => this.setState({ error }));
   }
 
@@ -40,18 +48,15 @@ class App extends Component {
       ...hits
     ];
 
-    if (this.mounted) {
-      this.setState({
-        results: {
-          ...results,
-          [searchKey]: { hits: updatedHits, page }
-        }
-      });
-    }
+    this.setState({
+      results: {
+        ...results,
+        [searchKey]: { hits: updatedHits, page }
+      }
+    });
   }
 
   componentDidMount() {
-    this.mounted = true;
     const { searchTerm } = this.state;
     this.setState({ searchKey: searchTerm });
     this.fetchSearchTopStories(searchTerm);
@@ -87,10 +92,6 @@ class App extends Component {
 
   needsToSearchTopStories = (searchTerm) => {
     return !this.state.results[searchTerm];
-  }
-
-  componentWillUnmount() {
-    this.mounted = false;
   }
 
   render() {
